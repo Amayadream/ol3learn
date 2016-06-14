@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<title></title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="ol/ol.css">
+	<script src="ol/ol.js"></script>
+</head>
+<body>
+    <div id="map" style="width: 100%"></div>
+    <script>
+      // 创建地图
+      new ol.Map({
+      		controls: ol.control.defaults({
+      			attributionOptions: ({
+      				collapsible: false
+      			})
+      		}).extend([
+				new ol.control.FullScreen(),
+	            new ol.control.MousePosition(),
+	            new ol.control.ScaleLine(),
+	            new ol.control.ZoomSlider(),
+	            new ol.control.ZoomToExtent()
+  			]),
+      		// logo: false,
+      		logo: {src: "img/monkey-logo.jpg", href: "http://www.amayadream.com"},
+            // 设置地图图层
+            layers: [
+              // 创建一个使用Open Street Map地图源的瓦片图层
+              new ol.layer.Tile({source: new ol.source.OSM()})
+            ],
+            // 设置显示地图的视图
+            view: new ol.View({
+            	// 设置地图中心范围
+                extent: [124.35, 42.88, 126.35, 44.88], //[minX, minY, maxX, maxY]
+                // 设置成都为地图中心
+                center: [125.35, 43.88],
+                projection: 'EPSG:4326',
+                zoom: 10,
+                minZoom: 10,
+                maxZoom: 14
+            }),
+            // 让id为map的div作为地图的容器
+            target: 'map'    
+        });
+    </script>
+</body>
+</html>

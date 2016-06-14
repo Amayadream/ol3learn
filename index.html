@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="ol/ol.css">
+	<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
+	<script type="text/javascript" src="ol/jquery-2.1.4.min.js"></script>
+	<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="ol/ol.js"></script>
+	<script type="text/javascript" src="ol/app.js"></script>
+	<style>
+		.toolbar {
+			position: absolute;
+			top: 6px;
+			right: 40px;
+		}
+		.tooltip {
+			position: relative;
+			background: rgba(0, 0, 0, 0.5);
+			border-radius: 4px;
+			color: white;
+			padding: 4px 8px;
+			opacity: 0.7;
+			white-space: nowrap;
+		}
+		.tooltip-measure {
+			opacity: 1;
+			font-weight: bold;
+		}
+		.tooltip-static {
+			background-color: #ffcc33;
+			color: black;
+			border: 1px solid white;
+		}
+		.tooltip-measure:before,
+		.tooltip-static:before {
+			border-top: 6px solid rgba(0, 0, 0, 0.5);
+			border-right: 6px solid transparent;
+			border-left: 6px solid transparent;
+			content: "";
+			position: absolute;
+			bottom: -6px;
+			margin-left: -7px;
+			left: 50%;
+		}
+		.tooltip-static:before {
+			border-top-color: #ffcc33;
+		}
+		.rotate-north {
+			top: 65px;
+			right: .5em;
+		}
+		.ol-touch .rotate-north {
+			top: 80px;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="map" style="width: 100%;height: 100%"></div>
+	<script>
+		window.app = {};
+		var app = window.app;
+		app.RotateNorthControl = function(opt_options) {
+			var options = opt_options || {};
+			var button = document.createElement('button');
+			button.innerHTML = 'H';
+			var this_ = this;
+			var handleRotateNorth = function() {
+				alert("1");
+			};
+			button.addEventListener('click', handleRotateNorth, false);
+			button.addEventListener('touchstart', handleRotateNorth, false);
+			var element = document.createElement('div');
+			element.className = 'rotate-north ol-unselectable ol-control';
+			element.appendChild(button);
+			ol.control.Control.call(this, {
+				element: element,
+				target: options.target
+			});
+		};
+		ol.inherits(app.RotateNorthControl, ol.control.Control);
+
+		// 百度地图层
+    var baiduMapLayer = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+            tilePixelRatio: 2,
+            tileUrlFunction: function(tileCoord){  // 参数tileCoord为瓦片坐标
+                var z = tileCoord[0];
+        var x = tileCoord[1];
+        var y = tileCoord[2];
+
+        // 计算当前层级下瓦片总数的一半，用于定位整个地图的中心点
+        var halfTileNum = Math.pow(2, z-1);
+        // 原点移到中心点后，计算xy方向上新的坐标位置
+        var baiduX =  x - halfTileNum;
+        var baiduY =  y + halfTileNum;
+
+        // 百度瓦片服务url将负数使用M前缀来标识
+        if (baiduX < 0) {
+            baiduX = 'M' + (-baiduX);
+        }
+        if (baiduY < 0) {
+            baiduY = 'M' + (-baiduY);
+        }
+
+        // 返回经过转换后，对应于百度在线瓦片的url
+        return 'http://online2.map.bdimg.com/onlinelabel/?qt=tile&x=' + baiduX + '&y=' + baiduY + '&z=' + z + '&styles=pl&udt=20160321&scaler=2&p=0';
+            }
+        })
+    });
+
+		var wgs84Sphere = new ol.Sphere(6378137);
+
+		var source = new ol.source.Vector({
+			wrapX: false
+		});
+
+		var vector = new ol.layer.Vector({
+			source: source,
+			style: new ol.style.Style({
+				fill: new ol.style.Fill({
+					color: 'rgba(255, 255, 255, 0.2)'
+				}),
+				stroke: new ol.style.Stroke({
+					color: '#ffcc33',
+					width: 2
+				}),
+				image: new ol.style.Circle({
+					radius: 7,
+					fill: new ol.style.Fill({
+						color: '#ffcc33'
+					})
+				})
+			})
+		});
+		// 创建地图
+		var map = new ol.Map({
+			controls: ol.control.defaults({
+				attributionOptions: ({
+					collapsible: true
+				})
+			}).extend([
+				new app.RotateNorthControl(),
+				// new ol.control.FullScreen(),
+				new ol.control.ScaleLine(),
+				new ol.control.ZoomSlider(),
+				// new ol.control.ZoomToExtent()
+			]),
+			// logo: false,
+			logo: {
+				src: "img/monkey-logo.jpg",
+				href: "http://www.amayadream.com"
+			},
+			// 设置地图图层
+			layers: [
+				// 创建一个使用Open Street Map地图源的瓦片图层
+				new ol.layer.Tile({
+					source: new ol.source.XYZ({
+						// url: 'http://webst0{1-4}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
+						url:'http://www.google.cn/maps/vt/pb=!1m4!1m3!1i{z}!2i{x}!3i{y}!2m3!1e0!2sm!3i345013117!3m8!2szh-CN!3scn!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0'
+					})
+				}),
+				vector
+			],
+			// 设置显示地图的视图
+			view: new ol.View({
+				// 设置地图中心范围
+				// extent: [124.35, 42.88, 126.35, 44.88], //[minX, minY, maxX, maxY]
+				// 设置成都为地图中心
+				// center: [125.35, 43.88],
+				center: ol.proj.transform([116, 39], 'EPSG:4326', 'EPSG:3857'),
+				// projection: 'EPSG:4326',
+				zoom: 5,
+				// minZoom: 5,
+				// maxZoom: 14
+			}),
+			interactions: ol.interaction.defaults({
+				doubleClickZoom: false
+			}),
+			// 让id为map的div作为地图的容器
+			target: 'map'
+		});
+
+		// 在viewport节点下添加一个分享按钮
+		var viewport = map.getViewport();
+		var html = '<div class="btn-group toolbar" role="group" aria-label="...">';
+		html += '<button type="button" class="btn btn-default btn-sm" onclick="source.clear()">地图</button>';
+		html += '<button type="button" class="btn btn-default btn-sm">影像</button>';
+		html += '<button type="button" class="btn btn-default btn-sm">三维</button>';
+		html += '<button type="button" class="btn btn-default btn-sm">图层</button>';
+		html += '<div class="btn-group" role="group">';
+		html += '<button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+		html += '工具 ';
+		html += '<span class="caret"></span>';
+		html += '</button>';
+		html += '<ul class="dropdown-menu">';
+		html += '<li><a href="javascript:;" onclick="amap.drawFeature(\'Point\')">点</a></li>';
+		html += '<li><a href="javascript:;" onclick="amap.drawFeature(\'LineString\')">线</a></li>';
+		html += '<li><a href="javascript:;" onclick="amap.drawFeature(\'Polygon\')">面</a></li>';
+		html += '<li><a href="javascript:;" onclick="amap.measure(map, wgs84Sphere, \'LineString\');">距离</a></li>';
+		html += '<li><a href="javascript:;" onclick="amap.measure(map, wgs84Sphere, \'Polygon\');">面积</a></li>';
+		html += '</ul>';
+		html += '</div>';
+		html += '</div>';
+		$(viewport).append(html);
+
+		amap = new Amap(map, source);
+
+	</script>
+</body>
+
+</html>

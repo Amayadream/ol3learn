@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<title></title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="ol/ol.css">
+	<script src="ol/ol.js"></script>
+</head>
+<body>
+    <div id="map" style="width: 100%"></div>
+    <div><span>当前层级：</span><span id="zoom"></span><span>分辨率：</span><span id="resolution"></span></div>
+    <script>
+      // 创建地图
+      var map = new ol.Map({
+      		controls: ol.control.defaults({
+      			attributionOptions: ({
+      				collapsible: false
+      			})
+      		}).extend([
+				new ol.control.FullScreen(),
+	            new ol.control.MousePosition(),
+	            new ol.control.ScaleLine(),
+	            new ol.control.ZoomSlider(),
+	            new ol.control.ZoomToExtent()
+  			]),
+      		// logo: false,
+      		logo: {src: "img/monkey-logo.jpg", href: "http://www.amayadream.com"},
+            // 设置地图图层
+            layers: [
+            	new ol.layer.Tile({
+            		source: new ol.source.XYZ({
+				        url:'http://webst0{1-4}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
+				    })
+            	})
+            ],
+            // 设置显示地图的视图
+            view: new ol.View({
+            	// 设置地图中心范围
+                extent: [124.35, 42.88, 126.35, 44.88], //[minX, minY, maxX, maxY]
+                // 设置成都为地图中心
+                center: [125.35, 43.88],
+                projection: 'EPSG:4326',
+                zoom: 10,
+                minZoom: 10,
+                maxZoom: 14
+            }),
+            // 让id为map的div作为地图的容器
+            target: 'map'    
+        });
+
+      	// 监听层级变化，输出当前层级和分辨率
+	    map.getView().on('change:resolution', function(){
+	        document.getElementById('zoom').innerHTML =  this.getZoom() + '，';
+	        document.getElementById('resolution').innerHTML = this.getResolution();
+	    })
+
+	    document.getElementById('zoom').innerHTML = map.getView().getZoom() + '，';
+	    document.getElementById('resolution').innerHTML = + map.getView().getResolution();
+    </script>
+</body>
+</html>
