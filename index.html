@@ -6,55 +6,13 @@
 	<title></title>
 	<link rel="stylesheet" type="text/css" href="ol/ol.css">
 	<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
-	<script type="text/javascript" src="ol/jquery-2.1.4.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="static/css/style.css">
+	<script type="text/javascript" src="static/js/jquery-2.1.4.min.js"></script>
 	<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="ol/ol.js"></script>
-	<script type="text/javascript" src="ol/app.js"></script>
+	<script type="text/javascript" src="static/js/app.js"></script>
 	<style>
-		.toolbar {
-			position: absolute;
-			top: 6px;
-			right: 40px;
-		}
-		.tooltip {
-			position: relative;
-			background: rgba(0, 0, 0, 0.5);
-			border-radius: 4px;
-			color: white;
-			padding: 4px 8px;
-			opacity: 0.7;
-			white-space: nowrap;
-		}
-		.tooltip-measure {
-			opacity: 1;
-			font-weight: bold;
-		}
-		.tooltip-static {
-			background-color: #ffcc33;
-			color: black;
-			border: 1px solid white;
-		}
-		.tooltip-measure:before,
-		.tooltip-static:before {
-			border-top: 6px solid rgba(0, 0, 0, 0.5);
-			border-right: 6px solid transparent;
-			border-left: 6px solid transparent;
-			content: "";
-			position: absolute;
-			bottom: -6px;
-			margin-left: -7px;
-			left: 50%;
-		}
-		.tooltip-static:before {
-			border-top-color: #ffcc33;
-		}
-		.rotate-north {
-			top: 65px;
-			right: .5em;
-		}
-		.ol-touch .rotate-north {
-			top: 80px;
-		}
+
 	</style>
 </head>
 
@@ -151,7 +109,7 @@
 			]),
 			// logo: false,
 			logo: {
-				src: "img/monkey-logo.jpg",
+				src: "static/img/monkey-logo.jpg",
 				href: "http://www.amayadream.com"
 			},
 			// 设置地图图层
@@ -187,7 +145,7 @@
 		// 在viewport节点下添加一个分享按钮
 		var viewport = map.getViewport();
 		var html = '<div class="btn-group toolbar" role="group" aria-label="...">';
-		html += '<button type="button" class="btn btn-default btn-sm" onclick="source.clear()">地图</button>';
+		html += '<button type="button" class="btn btn-default btn-sm" onclick="amap.clear()">地图</button>';
 		html += '<button type="button" class="btn btn-default btn-sm">影像</button>';
 		html += '<button type="button" class="btn btn-default btn-sm">三维</button>';
 		html += '<button type="button" class="btn btn-default btn-sm">图层</button>';
@@ -200,14 +158,16 @@
 		html += '<li><a href="javascript:;" onclick="amap.drawFeature(\'Point\')">点</a></li>';
 		html += '<li><a href="javascript:;" onclick="amap.drawFeature(\'LineString\')">线</a></li>';
 		html += '<li><a href="javascript:;" onclick="amap.drawFeature(\'Polygon\')">面</a></li>';
-		html += '<li><a href="javascript:;" onclick="amap.measure(map, wgs84Sphere, \'LineString\');">距离</a></li>';
-		html += '<li><a href="javascript:;" onclick="amap.measure(map, wgs84Sphere, \'Polygon\');">面积</a></li>';
+		html += '<li><a href="javascript:;" onclick="amap.measure(\'LineString\');">距离</a></li>';
+		html += '<li><a href="javascript:;" onclick="amap.measure(\'Polygon\');">面积</a></li>';
 		html += '</ul>';
 		html += '</div>';
 		html += '</div>';
 		$(viewport).append(html);
 
-		amap = new Amap(map, source);
+		amap = new Amap(map, source, wgs84Sphere);
+		// amap.drawInit({drawBeforeClear: true, drawMore: true});
+		// amap.measureInit({measureBeforeClear: true, measureMore: false});
 
 	</script>
 </body>
