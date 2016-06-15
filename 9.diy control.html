@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <title></title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="ol/ol.css">
+    <script src="ol/ol.js"></script>
+    <style>
+    .rotate-north {
+        top: 65px;
+        right: .5em;
+    }
+    .ol-touch .rotate-north {
+        top: 80px;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="map" style="width: 100%"></div>
+    <script>
+        window.app = {};
+        var app = window.app;
+        app.RotateNorthControl = function(opt_options) {
+            var options = opt_options || {};
+            var button = document.createElement('button');
+            button.innerHTML = 'H';
+            var this_ = this;
+            var handleRotateNorth = function() {
+                alert("1");
+            };
+            button.addEventListener('click', handleRotateNorth, false);
+            button.addEventListener('touchstart', handleRotateNorth, false);
+            var element = document.createElement('div');
+            element.className = 'rotate-north ol-unselectable ol-control';
+            element.appendChild(button);
+            ol.control.Control.call(this, {
+                element: element,
+                target: options.target
+            });
+        };
+        ol.inherits(app.RotateNorthControl, ol.control.Control);
+        // 创建地图
+        var map = new ol.Map({
+            controls: ol.control.defaults({
+				attributionOptions: ({
+					collapsible: true
+				})
+			}).extend([
+				new app.RotateNorthControl(),
+				// new ol.control.FullScreen(),
+				new ol.control.ScaleLine(),
+				new ol.control.ZoomSlider(),
+				// new ol.control.ZoomToExtent()
+			]),
+            // 设置地图图层
+            layers: [
+                // 创建一个使用Open Street Map地图源的瓦片图层
+                new ol.layer.Tile({
+                    source: new ol.source.OSM()
+                })
+            ],
+            // 设置显示地图的视图
+            view: new ol.View({
+                center: [0, 0], // 定义地图显示中心于经度0度，纬度0度处
+                zoom: 2 // 并且定义地图显示层级为2
+            }),
+            // 让id为map的div作为地图的容器
+            target: 'map'
+        });
+    </script>
+</body>
+
+</html>

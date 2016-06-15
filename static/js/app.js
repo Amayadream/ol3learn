@@ -5,7 +5,6 @@ function Amap(map, source, wgs84Sphere) {
 
     this.draw = null;
 
-
     //measure need
     this.helpMsg = '点击开始绘制';
     this.continuePolygonMsg = '继续绘制多边形';
@@ -256,7 +255,6 @@ Amap.prototype = {
         return output;
     },
     controlEvent: function(event, active){
-        // var s = ol.interaction.DoubleClickZoom;
         var interactions = this.map.getInteractions();
         for (var i = 0; i < interactions.getLength(); i++) {
             var interaction = interactions.item(i);

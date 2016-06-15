@@ -34,13 +34,6 @@
 .tooltip-static:before {
     border-top-color: #ffcc33;
 }
-.rotate-north {
-    top: 65px;
-    right: .5em;
-}
-.ol-touch .rotate-north {
-    top: 80px;
-}
 .ol-popup {
     position: absolute;
     background-color: white;
