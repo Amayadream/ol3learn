@@ -21,8 +21,8 @@
         init: function(set) {
             if (set.map)
                 this.map = map;
-            if (set.source)
-                this.source = source;
+            if (set.source_draw)
+                this.source = source_draw;
             if (set.wgs84Sphere)
                 this.wgs84Sphere = wgs84Sphere;
         },
@@ -106,6 +106,7 @@
              * 测量面积和距离,参数包括LineString和Polygon
              */
             run: function(type) {
+                _this = that;
                 that.map.removeInteraction(that.drawtool);
                 if (that.measureBeforeClear !== undefined && that.measureBeforeClear)
                     that.clear(that.source);
@@ -135,7 +136,7 @@
                     that.helpTooltipElement.classList.add('hidden');
                 });
                 that.drawtool = new ol.interaction.Draw({
-                    source: source,
+                    source: _this.source,
                     type: /** @type {ol.geom.GeometryType} */ (type),
                     style: new ol.style.Style({
                         fill: new ol.style.Fill({
@@ -284,7 +285,7 @@
          * 清理图层
          */
         clear: function(source) {
-            source.clear();
+            this.source.clear();
             $(".tooltip").remove();
         },
 

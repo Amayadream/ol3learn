@@ -15,7 +15,7 @@
 
 <body>
     <div id="map" style="width: 100%;height: 100%"></div>
-    <div id="popup" class="ol-popup">
+    <div id="popup" class="ol-popup" style="display:None">
         <a href="#" id="popup-closer" class="ol-popup-closer"></a>
         <div id="popup-content"></div>
     </div>
@@ -60,12 +60,37 @@
 
         var wgs84Sphere = new ol.Sphere(6378137);
 
-        var source = new ol.source.Vector({
+        var source_draw = new ol.source.Vector({
+            name : "source_draw",
+            wrapX: false
+        });
+        var source_show = new ol.source.Vector({
+            name : "source_show",
             wrapX: false
         });
 
-        var vector = new ol.layer.Vector({
-            source: source,
+        var source;
+
+        var vector_draw = new ol.layer.Vector({
+            source: source_draw,
+            style: new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 255, 255, 0.2)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: '#ffcc33',
+                    width: 2
+                }),
+                image: new ol.style.Circle({
+                    radius: 7,
+                    fill: new ol.style.Fill({
+                        color: '#ffcc33'
+                    })
+                })
+            })
+        });
+        var vector_show = new ol.layer.Vector({
+            source: source_show,
             style: new ol.style.Style({
                 fill: new ol.style.Fill({
                     color: 'rgba(255, 255, 255, 0.2)'
@@ -108,7 +133,8 @@
                         url: 'http://www.google.cn/maps/vt/pb=!1m4!1m3!1i{z}!2i{x}!3i{y}!2m3!1e0!2sm!3i345013117!3m8!2szh-CN!3scn!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0'
                     })
                 }),
-                vector
+                vector_show,
+                vector_draw
             ],
             // 设置显示地图的视图
             view: new ol.View({
@@ -132,12 +158,12 @@
         // 在viewport节点下添加一个分享按钮
         var viewport = map.getViewport();
         var html = '<div class="btn-group toolbar" role="group" aria-label="...">';
-        html += '<button type="button" class="btn btn-default btn-sm" onclick="amap.clear(source)">地图</button>';
+        html += '<button type="button" class="btn btn-success btn-sm">显示</button>';
         html += '<button type="button" class="btn btn-default btn-sm">影像</button>';
         html += '<button type="button" class="btn btn-default btn-sm">三维</button>';
-        html += '<button type="button" class="btn btn-default btn-sm">图层</button>';
+        html += '<button type="button" class="btn btn-danger btn-sm"  onclick="amap.clear(source)">清除</button>';
         html += '<div class="btn-group" role="group">';
-        html += '<button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+        html += '<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
         html += '工具 ';
         html += '<span class="caret"></span>';
         html += '</button>';
@@ -152,11 +178,7 @@
         html += '</div>';
         $(viewport).append(html);
 
-        amap.init({
-            map,
-            source,
-            wgs84Sphere
-        });
+        amap.init({map, source_draw, wgs84Sphere});
         // amap.drawInit({drawBeforeClear: true, drawMore: true});
         // amap.measureInit({measureBeforeClear: true, measureMore: false});
 
@@ -165,12 +187,11 @@
             name : 'BeiJing',
             something : 'hello, world',
             coordinate : [116, 39],
-
         });
-        vector.getSource().addFeature(point);
+        vector_show.getSource().addFeature(point);
 
         var selectSingleClick = new ol.interaction.Select({
-            // condition: ol.events.condition.pointerMove, // 唯一的不同之处，设置鼠标移到feature上就选取
+            condition: ol.events.condition.pointerMove, // 唯一的不同之处，设置鼠标移到feature上就选取
             style: new ol.style.Style({
                 image: new ol.style.Circle({
                     radius: 10,
@@ -178,13 +199,17 @@
                         color: 'blue'
                     })
                 })
-            })
+            }),
+            filter: function(feature, layer){
+                return layer === vector_show;
+            }
         });
         map.addInteraction(selectSingleClick);
         selectSingleClick.on('select', function(event) {
             if(event.selected.length > 0){
                 var feature = event.selected[0];
                 if(feature){
+                    container.style.display = "";
                     var overlay = new ol.Overlay(({
                         id : 'city',
                         element: container,
