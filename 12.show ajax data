@@ -172,14 +172,14 @@
         // 在viewport节点下添加一个分享按钮
         var viewport = map.getViewport();
         var html = '<div class="btn-group toolbar" role="group" aria-label="...">';
-        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="eventplace"><span class="glyphicon glyphicon-screenshot"></span> 事件地</button>';
-        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="company"><span class="glyphicon glyphicon-tower"></span> 单位</button>';
-        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="person"><span class="glyphicon glyphicon-user"></span> 人员</button>';
-        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="video"><span class="glyphicon glyphicon-facetime-video"></span> 视频</button>';
-        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="voice"><span class="glyphicon glyphicon-earphone"></span> 语音</button>';
-        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="phone"><span class="glyphicon glyphicon-phone"></span> 电话</button>';
-        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="publish"><span class="glyphicon glyphicon-comment"></span> 消息发布</button>';
-        html += '<button type="button" class="btn btn-danger btn-sm" id="clearLayer"><span class="glyphicon glyphicon-trash"></span> 清除</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool" onclick="showCity();"><span class="glyphicon glyphicon-screenshot"></span> 事件地</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool"><span class="glyphicon glyphicon-tower"></span> 单位</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool"><span class="glyphicon glyphicon-user"></span> 人员</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool"><span class="glyphicon glyphicon-facetime-video"></span> 视频</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool"><span class="glyphicon glyphicon-earphone"></span> 语音</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool"><span class="glyphicon glyphicon-phone"></span> 电话</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool"><span class="glyphicon glyphicon-comment"></span> 消息发布</button>';
+        html += '<button type="button" class="btn btn-danger btn-sm"  onclick="amap.clear(source);source_show.clear();"><span class="glyphicon glyphicon-trash"></span> 清除</button>';
         html += '<div class="btn-group" role="group">';
         html += '<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
         html += '<span class="glyphicon glyphicon-cog"></span> 工具 ';
@@ -202,39 +202,6 @@
             }else{
                 $(this).removeClass("btn-default").addClass("btn-success").addClass("state-on");
             }
-            var state = $(this).hasClass("state-on");
-            switch ($(this).attr("id")) {
-                case "eventplace":
-                    if(state)
-                        showCity();
-                    else
-                        source_show.clear();
-                    break;
-                case "company":
-
-                    break;
-                case "person":
-
-                    break;
-                case "video":
-
-                    break;
-                case "voice":
-
-                    break;
-                case "phone":
-
-                    break;
-                case "publish":
-
-                    break;
-            }
-        });
-
-        $("#clearLayer").click(function(){
-            $(".btn-tool").addClass("btn-default").removeClass("btn-success").removeClass("state-on").button('reset');
-            amap.clear(source);
-            source_show.clear();
         });
 
         amap.init({
