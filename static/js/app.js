@@ -20,11 +20,11 @@
         constructor: AMAP,
         init: function(set) {
             if (set.map)
-                this.map = map;
+                this.map = set.map;
             if (set.source_draw)
-                this.source = source_draw;
+                this.source = set.source_draw;
             if (set.wgs84Sphere)
-                this.wgs84Sphere = wgs84Sphere;
+                this.wgs84Sphere = set.wgs84Sphere;
         },
         /**
          * 绘制部分
