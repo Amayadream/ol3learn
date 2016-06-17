@@ -270,8 +270,8 @@
                 return output;
             },
         },
-        event : {
-            controlActive : function(event, active){
+        event: {
+            controlActive: function(event, active) {
                 var interactions = that.map.getInteractions();
                 for (var i = 0; i < interactions.getLength(); i++) {
                     var interaction = interactions.item(i);

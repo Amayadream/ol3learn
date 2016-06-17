@@ -36,7 +36,7 @@
             // 设置显示地图的视图
             view: new ol.View({
             	// 设置地图中心范围
-                extent: [124.35, 42.88, 126.35, 44.88], //[minX, minY, maxX, maxY]
+                // extent: [124.35, 42.88, 126.35, 44.88], //[minX, minY, maxX, maxY]
                 // 设置成都为地图中心
                 center: [125.35, 43.88],
                 projection: 'EPSG:4326',
@@ -45,7 +45,7 @@
                 maxZoom: 14
             }),
             // 让id为map的div作为地图的容器
-            target: 'map'    
+            target: 'map'
         });
 
       	// 监听层级变化，输出当前层级和分辨率

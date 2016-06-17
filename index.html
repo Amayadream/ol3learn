@@ -17,6 +17,7 @@
             height: 100%;
             margin: 0;
         }
+
         #map {
             height: 100%;
         }
@@ -33,12 +34,6 @@
         var container = document.getElementById('popup');
         var content = document.getElementById('popup-content');
         var closer = document.getElementById('popup-closer');
-
-        closer.onclick = function() {
-            overlay.setPosition(undefined);
-            closer.blur();
-            return false;
-        };
 
         // 百度地图层
         var baiduMapLayer = new ol.layer.Tile({
@@ -171,10 +166,14 @@
         // 在viewport节点下添加一个分享按钮
         var viewport = map.getViewport();
         var html = '<div class="btn-group toolbar" role="group" aria-label="...">';
-        html += '<button type="button" class="btn btn-success btn-sm" onclick="a();">显示</button>';
-        html += '<button type="button" class="btn btn-default btn-sm">影像</button>';
-        html += '<button type="button" class="btn btn-default btn-sm">三维</button>';
-        html += '<button type="button" class="btn btn-danger btn-sm"  onclick="amap.clear(source)">清除</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool">事件地</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool">单位</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool">人员</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool">视频</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool">语音</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool">电话</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool">消息发布</button>';
+        html += '<button type="button" class="btn btn-danger btn-sm"  onclick="amap.clear(source);source_show.clear();">清除</button>';
         html += '<div class="btn-group" role="group">';
         html += '<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
         html += '工具 ';
@@ -191,6 +190,14 @@
         html += '</div>';
         $(viewport).append(html);
 
+        $(".btn-tool").click(function(){
+            if($(this).hasClass("state-on")){
+                $(this).removeClass("btn-success").removeClass("state-on").addClass("btn-default");
+            }else{
+                $(this).removeClass("btn-default").addClass("btn-success").addClass("state-on");
+            }
+        });
+
         amap.init({
             map,
             source_draw,
@@ -199,56 +206,70 @@
         // amap.drawInit({drawBeforeClear: true, drawMore: true});
         // amap.measureInit({measureBeforeClear: true, measureMore: false});
 
-        var point = new ol.Feature({
-            geometry: new ol.geom.Point(ol.proj.transform([116, 39], 'EPSG:4326', 'EPSG:3857')),
-            name: 'BeiJing',
-            something: 'hello, world',
-            coordinate: [116, 39],
-        });
-        vector_show.getSource().addFeature(point);
-
-        var selectSingleClick = new ol.interaction.Select({
-            condition: ol.events.condition.pointerMove, // 唯一的不同之处，设置鼠标移到feature上就选取
-            style: new ol.style.Style({
-                image: new ol.style.Circle({
-                    radius: 10,
-                    fill: new ol.style.Fill({
-                        color: 'blue'
-                    })
-                })
-            }),
-            filter: function(feature, layer) {
-                return layer === vector_show;
-            }
-        });
-        map.addInteraction(selectSingleClick);
-        selectSingleClick.on('select', function(event) {
-            if (event.selected.length > 0) {
-                var feature = event.selected[0];
-                if (feature) {
-                    container.style.display = "";
-                    var overlay = new ol.Overlay(({
-                        id: 'city',
-                        element: container,
-                        autoPan: true,
-                        autoPanAnimation: {
-                            duration: 250
-                        }
-                    }));
-                    content.innerHTML = '<p>Welcome to ' + feature.get("name") + "</p>";
-                    overlay.setPosition(ol.proj.transform(feature.get("coordinate"), 'EPSG:4326', 'EPSG:3857'));
-                    map.addOverlay(overlay);
+        function showCity() {
+            source_show.clear();
+            $.ajax({
+                url: "static/json/city.json",
+                type: "GET",
+                dataType: "json",
+                success: function(data) {
+                    var point;
+                    $.each(eval(data), function(index, item) {
+                        point = new ol.Feature({
+                            geometry: new ol.geom.Point(ol.proj.transform(item.coordinate, 'EPSG:4326', 'EPSG:3857')),
+                            id: item.id,
+                            name: item.name,
+                            description: item.description,
+                            coordinate: item.coordinate,
+                            comandante: item.comandante
+                        });
+                        vector_show.getSource().addFeature(point);
+                        var selectSingleClick = new ol.interaction.Select({
+                            // condition: ol.events.condition.pointerMove, // 唯一的不同之处，设置鼠标移到feature上就选取
+                            style: new ol.style.Style({
+                                image: new ol.style.Circle({
+                                    radius: 10,
+                                    fill: new ol.style.Fill({
+                                        color: 'blue'
+                                    })
+                                })
+                            }),
+                            filter: function(feature, layer) {
+                                return layer === vector_show;
+                            }
+                        });
+                        map.addInteraction(selectSingleClick);
+                        selectSingleClick.on('select', function(event) {
+                            if (event.selected.length > 0) {
+                                var feature = event.selected[0];
+                                if (feature) {
+                                    container.style.display = "";
+                                    var overlay = new ol.Overlay(({
+                                        id: 'city',
+                                        element: container,
+                                        autoPan: true,
+                                        autoPanAnimation: {
+                                            duration: 250
+                                        }
+                                    }));
+                                    closer.onclick = function() {
+                                        overlay.setPosition(undefined);
+                                        closer.blur();
+                                        return false;
+                                    };
+                                    content.innerHTML = "<p><b>城市: " + feature.get("name") + "</b></p><p>简称: "+feature.get("comandante")+"</p><p>简介: " + feature.get("description") + "</p>";
+                                    overlay.setPosition(ol.proj.transform(feature.get("coordinate"), 'EPSG:4326', 'EPSG:3857'));
+                                    map.addOverlay(overlay);
+                                }
+                            } else if (event.deselected.length > 0) {
+                                if (map.getOverlayById("city")) {
+                                    map.removeOverlay(map.getOverlayById("city"));
+                                }
+                            }
+                        });
+                    });
                 }
-            } else if (event.deselected.length > 0) {
-                if (map.getOverlayById("city")) {
-                    map.removeOverlay(map.getOverlayById("city"));
-                }
-            }
-
-        });
-
-        function a(){
-            view.setCenter(ol.proj.transform([0, 0], 'EPSG:4326', 'EPSG:3857'));
+            });
         }
     </script>
 </body>
