@@ -7,9 +7,11 @@
     <link rel="stylesheet" type="text/css" href="ol/ol.css">
     <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="static/css/style.css">
+    <link rel="stylesheet" type="text/css" href="static/css/sidebar.css">
     <script type="text/javascript" src="static/js/jquery-2.1.4.min.js"></script>
     <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="ol/ol.js"></script>
+    <script type="text/javascript" src="static/js/jquery.sidebar.min.js"></script>
     <script type="text/javascript" src="static/js/app.js"></script>
     <style>
         html,
@@ -21,7 +23,8 @@
         #map {
             height: 100%;
         }
-        .btn{
+
+        .btn {
             line-height: 25px;
             display: inline-block;
             padding-left: 8px;
@@ -36,6 +39,7 @@
         <a href="#" id="popup-closer" class="ol-popup-closer"></a>
         <div id="popup-content"></div>
     </div>
+    <div class="sidebar left">Hello World</div>
     <script>
         var container = document.getElementById('popup');
         var content = document.getElementById('popup-content');
@@ -172,7 +176,8 @@
         // 在viewport节点下添加一个分享按钮
         var viewport = map.getViewport();
         var html = '<div class="btn-group toolbar" role="group" aria-label="...">';
-        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="eventplace"><span class="glyphicon glyphicon-screenshot"></span> 事件地</button>';
+        html += '<button type="button" class="btn btn-info btn-sm" id="search"><span class="glyphicon glyphicon-search"></span> 查询</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="place"><span class="glyphicon glyphicon-screenshot"></span> 事件地</button>';
         html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="company"><span class="glyphicon glyphicon-tower"></span> 单位</button>';
         html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="person"><span class="glyphicon glyphicon-user"></span> 人员</button>';
         html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="video"><span class="glyphicon glyphicon-facetime-video"></span> 视频</button>';
@@ -196,16 +201,16 @@
         html += '</div>';
         $(viewport).append(html);
 
-        $(".btn-tool").click(function(){
-            if($(this).hasClass("state-on")){
+        $(".btn-tool").click(function() {
+            if ($(this).hasClass("state-on")) {
                 $(this).removeClass("btn-success").removeClass("state-on").addClass("btn-default");
-            }else{
+            } else {
                 $(this).removeClass("btn-default").addClass("btn-success").addClass("state-on");
             }
             var state = $(this).hasClass("state-on");
             switch ($(this).attr("id")) {
-                case "eventplace":
-                    if(state)
+                case "place":
+                    if (state)
                         showCity();
                     else
                         source_show.clear();
@@ -231,10 +236,26 @@
             }
         });
 
-        $("#clearLayer").click(function(){
+        $("#clearLayer").click(function() {
             $(".btn-tool").addClass("btn-default").removeClass("btn-success").removeClass("state-on").button('reset');
             amap.clear(source);
             source_show.clear();
+        });
+
+        $(".sidebar.left").sidebar({
+            close: true
+        });
+
+        $("#search").click(function() {
+            $(".sidebar.left").trigger("sidebar:toggle");
+        });
+
+        $(".sidebar.left").on("sidebar:opened", function() {
+            console.log("opened");
+        });
+
+        $(".sidebar.left").on("sidebar:closed", function() {
+            console.log("closed");
         });
 
         amap.init({
@@ -244,6 +265,10 @@
         });
         // amap.drawInit({drawBeforeClear: true, drawMore: true});
         // amap.measureInit({measureBeforeClear: true, measureMore: false});
+
+        function displayPoint(map, view, container, content){
+
+        }
 
         function showCity() {
             source_show.clear();
@@ -260,19 +285,33 @@
                             name: item.name,
                             description: item.description,
                             coordinate: item.coordinate,
-                            comandante: item.comandante
+                            comandante: item.comandante,
                         });
+                        point.setStyle(
+                            new ol.style.Style({
+                                text: new ol.style.Text({
+                                    text : item.name,
+                                    font : "14px Calibri,sans-serif",
+                                    offsetY: 20,
+                                    fill: new ol.style.Fill({
+                                        color: '#08d2ff'
+                                    }),
+                                    stroke: new ol.style.Stroke({
+                                        color: '#752586',
+                                        width: 3
+                                    })
+                                }),
+                                image: new ol.style.Circle({
+                                    radius: 6,
+                                    fill: new ol.style.Fill({
+                                        color: 'rgb(168, 66, 66)'
+                                    })
+                                })
+                            })
+                        )
                         vector_show.getSource().addFeature(point);
                         var selectSingleClick = new ol.interaction.Select({
                             // condition: ol.events.condition.pointerMove, // 唯一的不同之处，设置鼠标移到feature上就选取
-                            style: new ol.style.Style({
-                                image: new ol.style.Circle({
-                                    radius: 10,
-                                    fill: new ol.style.Fill({
-                                        color: 'blue'
-                                    })
-                                })
-                            }),
                             filter: function(feature, layer) {
                                 return layer === vector_show;
                             }
@@ -296,7 +335,7 @@
                                         closer.blur();
                                         return false;
                                     };
-                                    content.innerHTML = "<p><b>城市: " + feature.get("name") + "</b></p><p>简称: "+feature.get("comandante")+"</p><p>简介: " + feature.get("description") + "</p>";
+                                    content.innerHTML = "<p><b>城市: " + feature.get("name") + "</b></p><p>简称: " + feature.get("comandante") + "</p><p>简介: " + feature.get("description") + "</p>";
                                     overlay.setPosition(ol.proj.transform(feature.get("coordinate"), 'EPSG:4326', 'EPSG:3857'));
                                     map.addOverlay(overlay);
                                 }
