@@ -3,77 +3,77 @@
         "id" : "company",
         "name" : "长春市药监局",
         "type" : "spda",
-        "coordinate" : [43.816660,125.323620],
+        "coordinate" : [125.323620, 43.816660],
         "phone" : "0431-88777910",
         "address" : "吉林省长春市南关区人民大街10111号"
     },{
         "id" : "company",
         "name" : "长春市药监局经开分局",
         "type" : "spda",
-        "coordinate" : [43.902360,125.443650],
+        "coordinate" : [125.443650, 43.902360],
         "phone" : "暂无",
         "address" : "吉林省长春市二道区经济技术开发区哈尔滨大街与常德路交汇"
     },{
         "id" : "company",
         "name" : "长春市南关区药监局",
         "type" : "spda",
-        "coordinate" : [43.885630,125.342030],
+        "coordinate" : [125.342030, 43.885630],
         "phone" : "0431-88761359",
         "address" : "吉林省长春市南关区南街胡同13"
     },{
         "id" : "company",
         "name" : "长春市双阳区药监局",
         "type" : "spda",
-        "coordinate" : [43.525030,125.664640],
+        "coordinate" : [125.664640, 43.525030],
         "phone" : "0431-84220455",
         "address" : "吉林省长春市双阳区西双阳大街599"
     },{
         "id" : "company",
         "name" : "长春市食品药监局宽城分局",
         "type" : "spda",
-        "coordinate" : [43.904070,125.329240],
+        "coordinate" : [125.329240, 43.904070],
         "phone" : "0431-89990782",
         "address" : "吉林省长春市宽城区天津路371"
     },{
         "id" : "company",
         "name" : "长春市食品药监局南关监督管理所",
         "type" : "spda",
-        "coordinate" : [43.882570, 125.335600],
+        "coordinate" : [125.335600, 43.882570],
         "phone" : "暂无",
         "address" : "吉林省长春市南关区 "
     },{
         "id" : "company",
         "name" : "长春市中心医院",
         "type" : "hospital",
-        "coordinate" : [43.892430, 125.325380],
+        "coordinate" : [125.325380, 43.892430],
         "phone" : "0431-88916232",
         "address" : "吉林省长春市南关区人民大街1810号 "
     },{
         "id" : "company",
         "name" : "长春市儿童医院",
         "type" : "hospital",
-        "coordinate" : [43.894330,125.316220],
+        "coordinate" : [125.316220, 43.894330],
         "phone" : "0431-89332088",
         "address" : "吉林省长春市朝阳区北安路1321号"
     },{
         "id" : "company",
         "name" : "中国人民解放军第208医院",
         "type" : "hospital",
-        "coordinate" : [43.902730,125.269380],
+        "coordinate" : [125.269380, 43.902730],
         "phone" : "0431-81923208",
         "address" : "吉林省长春市绿园区西安大路4799号"
     },{
         "id" : "company",
         "name" : "长春市第二医院",
         "type" : "hospital",
-        "coordinate" : [43.889060,125.293690],
+        "coordinate" : [125.293690, 43.889060],
         "phone" : "0431-87905900",
         "address" : "吉林省长春市绿园区翔运街1239号"
     },{
         "id" : "company",
         "name" : "长春市口腔医院",
         "type" : "hospital",
-        "coordinate" : [43.879620,125.345840],
+        "coordinate" : [125.345840, 43.879620],
         "phone" : "0431-88672243",
         "address" : "吉林省长春市南关区大经路2239号"
     }
