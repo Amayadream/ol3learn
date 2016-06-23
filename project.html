@@ -22,7 +22,7 @@
         #map {
             height: 100%;
         }
-        .btn {
+        .btn-group > .btn {
             line-height: 25px;
             display: inline-block;
             padding-left: 8px;
@@ -37,7 +37,36 @@
         <a href="#" id="popup-closer" class="ol-popup-closer"></a>
         <div id="popup-content"></div>
     </div>
-    <div class="sidebar left">Hello World</div>
+    <div class="sidebar left">
+        <div class="input-group" style="margin-top: 10px;margin-bottom: 20px">
+          <input type="text" class="form-control" aria-label="...">
+          <div class="input-group-btn">
+            <button type="button" class="btn btn-success">查询</button>
+            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right">
+              <li><a href="#">事件地</a></li>
+              <li><a href="#">单位</a></li>
+              <li><a href="#">人员</a></li>
+              <li role="separator" class="divider"></li>
+              <li><a href="#">视频</a></li>
+              <li><a href="#">语音</a></li>
+              <li><a href="#">电话</a></li>
+              <li><a href="#">信息发布</a></li>
+            </ul>
+          </div><!-- /btn-group -->
+        </div><!-- /input-group -->
+        <div class="result-list" style="height:600px; overflow:auto">
+            <li>
+                <ul><a href="#">hello, world</a></ul>
+                <ul><a href="#">hello, world</a></ul>
+                <ul><a href="#">hello, world</a></ul>
+                <ul><a href="#">hello, world</a></ul>
+            </li>
+        </div>
+    </div>
     <script>
         var container = document.getElementById('popup');
         var content = document.getElementById('popup-content');
@@ -225,25 +254,40 @@
             close: true
         });
 
+        //点击查询按钮弹出侧边栏事件
         $("#search").click(function() {
             $(".sidebar.left").trigger("sidebar:toggle");
         });
 
+        //侧边栏收起事件
         $(".sidebar.left").on("sidebar:opened", function() {
-            console.log("opened");
+            $(".btn-tool").attr("disabled",true);
+            if ($(".btn-tool").hasClass("state-on")) {
+                $(".btn-tool").removeClass("btn-success").removeClass("state-on").addClass("btn-default");
+            }
+            source_show.clear();
+            vector_company.getSource().clear();
         });
 
+        //侧边栏关闭事件
         $(".sidebar.left").on("sidebar:closed", function() {
-            console.log("closed");
+            $(".btn-tool").attr("disabled",false);
         });
 
-        amap.init({
-            map,
-            source_draw,
-            wgs84Sphere
-        });
+        //初始化amap
+        amap.init({map, source_draw, wgs84Sphere});
         // amap.drawInit({drawBeforeClear: true, drawMore: true});
         // amap.measureInit({measureBeforeClear: true, measureMore: false});
+
+        var style_common = new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 6,
+                fill: new ol.style.Fill({
+                    color: 'rgb(168, 66, 66)'
+                })
+            })
+        })
+
 
         function showCompany(map, view, container, content) {
             $.ajax({
@@ -262,16 +306,7 @@
                             phone: item.phone,
                             address: item.address
                         });
-                        point.setStyle(
-                            new ol.style.Style({
-                                image: new ol.style.Circle({
-                                    radius: 6,
-                                    fill: new ol.style.Fill({
-                                        color: 'rgb(168, 66, 66)'
-                                    })
-                                })
-                            })
-                        )
+                        point.setStyle(style_common);
                         view.getSource().addFeature(point);
                     });
                 }

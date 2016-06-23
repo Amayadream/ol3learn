@@ -44,7 +44,7 @@ footer a:hover {
     left: 0;
     bottom: 0;
     width: 270px;
-    background: #448AFF;
+    background: rgb(184, 184, 191);
 }
 
 .sidebar.right {
