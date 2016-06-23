@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <title></title>
@@ -13,15 +14,14 @@
     <script type="text/javascript" src="static/js/jquery.sidebar.min.js"></script>
     <script type="text/javascript" src="static/js/app.js"></script>
     <style>
-        html, body {
+        html,
+        body {
             height: 100%;
             margin: 0;
         }
-
         #map {
             height: 100%;
         }
-
         .btn {
             line-height: 25px;
             display: inline-block;
@@ -43,31 +43,9 @@
         var content = document.getElementById('popup-content');
         var closer = document.getElementById('popup-closer');
 
-        // 百度地图层
-        var baiduMapLayer = new ol.layer.Tile({
+        var offlineMapLayer = new ol.layer.Tile({
             source: new ol.source.XYZ({
-                tilePixelRatio: 2,
-                tileUrlFunction: function(tileCoord) { // 参数tileCoord为瓦片坐标
-                    var z = tileCoord[0];
-                    var x = tileCoord[1];
-                    var y = tileCoord[2];
-
-                    // 计算当前层级下瓦片总数的一半，用于定位整个地图的中心点
-                    var halfTileNum = Math.pow(2, z - 1);
-                    // 原点移到中心点后，计算xy方向上新的坐标位置
-                    var baiduX = x - halfTileNum;
-                    var baiduY = y + halfTileNum;
-
-                    // 百度瓦片服务url将负数使用M前缀来标识
-                    if (baiduX < 0) {
-                        baiduX = 'M' + (-baiduX);
-                    }
-                    if (baiduY < 0) {
-                        baiduY = 'M' + (-baiduY);
-                    }
-                    // 返回经过转换后，对应于百度在线瓦片的url
-                    return 'http://online2.map.bdimg.com/onlinelabel/?qt=tile&x=' + baiduX + '&y=' + baiduY + '&z=' + z + '&styles=pl&udt=20160321&scaler=2&p=0';
-                }
+                url: 'http://localhost:8888/roadmap_chen/{z}/{x}/{y}.png'
             })
         });
 
@@ -85,7 +63,7 @@
         var source;
 
         var vector_company = new ol.layer.Vector({
-            source : new ol.source.Vector({
+            source: new ol.source.Vector({
                 name: "source_company"
             })
         })
@@ -158,13 +136,7 @@
             },
             // 设置地图图层
             layers: [
-                // 创建一个使用Open Street Map地图源的瓦片图层
-                new ol.layer.Tile({
-                    source: new ol.source.XYZ({
-                        // url: 'http://webst0{1-4}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
-                        url: 'http://www.google.cn/maps/vt/pb=!1m4!1m3!1i{z}!2i{x}!3i{y}!2m3!1e0!2sm!3i345013117!3m8!2szh-CN!3scn!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0'
-                    })
-                }),
+                offlineMapLayer,
                 vector_show,
                 vector_draw,
                 vector_company
@@ -221,7 +193,7 @@
                     break;
                 case "company":
                     vector_company.getSource().clear();
-                    if(state)
+                    if (state)
                         showCompany(map, vector_company, container, content);
                     break;
                 case "person":
@@ -273,7 +245,7 @@
         // amap.drawInit({drawBeforeClear: true, drawMore: true});
         // amap.measureInit({measureBeforeClear: true, measureMore: false});
 
-        function showCompany(map, view, container, content){
+        function showCompany(map, view, container, content) {
             $.ajax({
                 url: "static/json/company.json",
                 type: "GET",
@@ -326,8 +298,8 @@
                         point.setStyle(
                             new ol.style.Style({
                                 text: new ol.style.Text({
-                                    text : item.name,
-                                    font : "14px Calibri,sans-serif",
+                                    text: item.name,
+                                    font: "14px Calibri,sans-serif",
                                     offsetY: 20,
                                     fill: new ol.style.Fill({
                                         color: '#08d2ff'
@@ -356,10 +328,10 @@
             layers: [vector_show, vector_draw, vector_company]
         });
         map.addInteraction(selectEnvent);
-        selectEnvent.on("select", function(event){
-            if(event.selected.length > 0){
+        selectEnvent.on("select", function(event) {
+            if (event.selected.length > 0) {
                 var feature = event.selected[0];
-                if(feature){
+                if (feature) {
                     var popup;
                     container.style.display = "";
                     closer.onclick = function() {
@@ -367,7 +339,7 @@
                         closer.blur();
                         return false;
                     };
-                    switch(feature.get("id")){
+                    switch (feature.get("id")) {
                         case "city":
                             popup = new ol.Overlay(({
                                 id: "city"
@@ -395,10 +367,12 @@
                     }
                     popup.setElement(container);
                     popup.set("autoPan", true, true);
-                    popup.set("autoPanAnimation", {duration: 250}, true);
+                    popup.set("autoPanAnimation", {
+                        duration: 250
+                    }, true);
                     map.addOverlay(popup);
                 }
-            }else if(event.deselected.length > 0){
+            } else if (event.deselected.length > 0) {
                 if (map.getOverlayById(event.deselected[0].get("id"))) {
                     map.removeOverlay(map.getOverlayById(event.deselected[0].get("id")));
                 }
