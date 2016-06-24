@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="utf-8">
     <title></title>
@@ -41,20 +40,19 @@
         <div class="input-group" style="margin-top: 10px;margin-bottom: 20px">
           <input type="text" class="form-control" aria-label="...">
           <div class="input-group-btn">
-            <button type="button" class="btn btn-success">查询</button>
+            <button type="button" class="btn btn-success" onclick="searchInfo();"> 查询</button>
             <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="caret"></span>
                 <span class="sr-only">Toggle Dropdown</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-right">
-              <li><a href="#">事件地</a></li>
-              <li><a href="#">单位</a></li>
-              <li><a href="#">人员</a></li>
-              <li role="separator" class="divider"></li>
-              <li><a href="#">视频</a></li>
-              <li><a href="#">语音</a></li>
-              <li><a href="#">电话</a></li>
-              <li><a href="#">信息发布</a></li>
+              <li><a href="javascript:;" onclick="searchInfo('place')">事件地</a></li>
+              <li><a href="javascript:;" onclick="searchInfo('company')">单位</a></li>
+              <li><a href="javascript:;" onclick="searchInfo('person')">人员</a></li>
+              <li><a href="javascript:;" onclick="searchInfo('video')">视频</a></li>
+              <li><a href="javascript:;" onclick="searchInfo('voice')">语音</a></li>
+              <li><a href="javascript:;" onclick="searchInfo('phone')">电话</a></li>
+              <li><a href="javascript:;" onclick="searchInfo('publish')">信息发布</a></li>
             </ul>
           </div><!-- /btn-group -->
         </div><!-- /input-group -->
@@ -72,24 +70,13 @@
         var content = document.getElementById('popup-content');
         var closer = document.getElementById('popup-closer');
 
+        var wgs84Sphere = new ol.Sphere(6378137);
+
         var offlineMapLayer = new ol.layer.Tile({
             source: new ol.source.XYZ({
                 url: 'http://localhost:8888/roadmap_chen/{z}/{x}/{y}.png'
             })
         });
-
-        var wgs84Sphere = new ol.Sphere(6378137);
-
-        var source_draw = new ol.source.Vector({
-            name: "source_draw",
-            wrapX: false
-        });
-        var source_show = new ol.source.Vector({
-            name: "source_show",
-            wrapX: false
-        });
-
-        var source;
 
         var vector_company = new ol.layer.Vector({
             source: new ol.source.Vector({
@@ -98,7 +85,7 @@
         })
 
         var vector_draw = new ol.layer.Vector({
-            source: source_draw,
+            source: new ol.source.Vector({name: "source_draw", wrapX: false}),
             style: new ol.style.Style({
                 fill: new ol.style.Fill({
                     color: 'rgba(255, 255, 255, 0.2)'
@@ -116,7 +103,7 @@
             })
         });
         var vector_show = new ol.layer.Vector({
-            source: source_show,
+            source: new ol.source.Vector({name: "source_show", wrapX: false}),
             style: new ol.style.Style({
                 fill: new ol.style.Fill({
                     color: 'rgba(255, 255, 255, 0.2)'
@@ -199,13 +186,71 @@
         html += '<ul class="dropdown-menu">';
         html += '<li><a href="javascript:;" onclick="amap.draw.run(\'Point\')">点</a></li>';
         html += '<li><a href="javascript:;" onclick="amap.draw.run(\'LineString\')">线</a></li>';
-        html += '<li><a href="javascript:;" onclick="amap.draw.run(\'Polygon\')">面</a></li>';
+        html += '<li><a href="javascript:;" onclick="amap.draw.run(\'Polygon\', test)">面</a></li>';
+        html += '<li><a href="javascript:;" onclick="amap.draw.run(\'Box\', test)">区域</a></li>';
         html += '<li><a href="javascript:;" onclick="amap.measure.run(\'LineString\');">距离</a></li>';
         html += '<li><a href="javascript:;" onclick="amap.measure.run(\'Polygon\');">面积</a></li>';
         html += '</ul>';
         html += '</div>';
         html += '</div>';
         $(viewport).append(html);
+
+
+        var style_text = new ol.style.Text({
+            fill: new ol.style.Fill({
+                color: '#08d2ff'
+            }),
+            stroke: new ol.style.Stroke({
+                color: '#752586',
+                width: 3
+            })
+        });
+
+        /** 生成point */
+        function generatePoint(point, id, coordinate, name){
+            point = new ol.Feature({
+                id: id,
+                geometry: new ol.geom.Point(ol.proj.transform(coordinate, "EPSG:4326", "EPSG:3857")),
+            });
+            if(name !== undefined && name != null && name != ""){
+                style_text.setText(name);
+                style_text.setFont("14px Calibri,sans-serif");
+                style_text.setOffsetY(20);
+            }
+            point.setStyle(new ol.style.Style({
+                text: style_text,
+                image: new ol.style.Circle({
+                    radius: 6,
+                    fill: new ol.style.Fill({
+                        color: 'rgb(168, 66, 66)'
+                    })
+                })
+            }));
+            return point;
+        }
+
+        function test(geometry){
+            $.ajax({
+                url: "static/json/city.json",
+                type: "GET",
+                dataType: "JSON",
+                success: function(data){
+                    var point;
+                    $.each(eval(data), function(index, item){
+                        if(geometry.intersectsExtent(ol.proj.transform(item.coordinate, "EPSG:4326", "EPSG:3857"))){
+                            point = generatePoint(point, item.id, item.coordinate, item.name);
+                            point.setProperties({
+                                "description": item.description,
+                                "name": item.name,
+                                "coordinate": item.coordinate,
+                                "comandante": item.comandante
+                            }, true);
+                            vector_show.getSource().addFeature(point);
+                        }
+                    });
+                }
+            })
+        }
 
         $(".btn-tool").click(function() {
             if ($(this).hasClass("state-on")) {
@@ -216,7 +261,7 @@
             var state = $(this).hasClass("state-on");
             switch ($(this).attr("id")) {
                 case "place":
-                    source_show.clear();
+                    vector_show.getSource().clear();
                     if (state)
                         showPlace();
                     break;
@@ -245,8 +290,8 @@
 
         $("#clearLayer").click(function() {
             $(".btn-tool").addClass("btn-default").removeClass("btn-success").removeClass("state-on").button('reset');
-            amap.clear(source);
-            source_show.clear();
+            amap.clear(vector_draw.getSource());
+            vector_show.getSource().clear();
             vector_company.getSource().clear();
         });
 
@@ -265,7 +310,7 @@
             if ($(".btn-tool").hasClass("state-on")) {
                 $(".btn-tool").removeClass("btn-success").removeClass("state-on").addClass("btn-default");
             }
-            source_show.clear();
+            vector_show.getSource().clear();
             vector_company.getSource().clear();
         });
 
@@ -274,9 +319,42 @@
             $(".btn-tool").attr("disabled",false);
         });
 
+        function searchInfo(type){
+            switch (type) {
+                case undefined:
+                    console.log("查询全部");
+                    break;
+                case "place":
+                    console.log("查询事发地");
+                    break;
+                case "company":
+                    console.log("查询单位");
+                    break;
+                case "person":
+                    console.log("查询人员");
+                    break;
+                case "video":
+                    console.log("查询视频");
+                    break;
+                case "voice":
+                    console.log("查询语音");
+                    break;
+                case "phone":
+                    console.log("查询电话");
+                    break;
+                case "publish":
+                    console.log("查询消息发布");
+                    break;
+            }
+        }
+
         //初始化amap
-        amap.init({map, source_draw, wgs84Sphere});
-        // amap.drawInit({drawBeforeClear: true, drawMore: true});
+        amap.init({
+            "map": map,
+            "source": vector_draw.getSource(),
+            "wgs84Sphere": wgs84Sphere
+        })
+        amap.draw.init({drawBeforeClear: true, drawMore: false});
         // amap.measureInit({measureBeforeClear: true, measureMore: false});
 
         var style_common = new ol.style.Style({
@@ -360,7 +438,10 @@
 
         /* 添加选择要素出发的事件 */
         var selectEnvent = new ol.interaction.Select({
-            layers: [vector_show, vector_draw, vector_company]
+            layers: [vector_show, vector_draw, vector_company],
+            filter: function(feature, layer) {
+                return feature.get("id") !== undefined;
+            }
         });
         map.addInteraction(selectEnvent);
         selectEnvent.on("select", function(event) {

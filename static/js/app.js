@@ -21,8 +21,8 @@
         init: function(set) {
             if (set.map)
                 this.map = set.map;
-            if (set.source_draw)
-                this.source = set.source_draw;
+            if (set.source)
+                this.source = set.source;
             if (set.wgs84Sphere)
                 this.wgs84Sphere = set.wgs84Sphere;
         },
@@ -43,7 +43,7 @@
             /**
              * 绘制图形,包括Point, LineString, Polygon, Circle, Box, Square
              */
-            run: function(type) {
+            run: function(type, callback) {
                 that.map.removeInteraction(that.drawtool);
                 if (that.drawBeforeClear !== undefined && that.drawBeforeClear)
                     that.clear(that.source);
@@ -59,7 +59,6 @@
                             if (!geometry) {
                                 geometry = new ol.geom.Polygon(null);
                             }
-
                             var start = coordinates[0];
                             var end = coordinates[1];
                             geometry.setCoordinates([
@@ -83,6 +82,9 @@
                         setTimeout(function() {
                             that.event.controlActive(ol.interaction.DoubleClickZoom, true);
                         }, 250);
+                        if(typeof callback != "undefined"){
+                            callback(evt.feature.getGeometry());
+                        }
                     });
                     that.map.addInteraction(that.drawtool);
                 }
