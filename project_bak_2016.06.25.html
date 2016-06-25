@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="ol/ol.css">
+    <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="static/css/style.css">
+    <link rel="stylesheet" type="text/css" href="static/css/sidebar.css">
+    <script type="text/javascript" src="static/js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="ol/ol.js"></script>
+    <script type="text/javascript" src="static/js/jquery.sidebar.min.js"></script>
+    <script type="text/javascript" src="static/js/app.js"></script>
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+        #map {
+            height: 100%;
+        }
+        .btn-group > .btn {
+            line-height: 25px;
+            display: inline-block;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <div id="popup" class="ol-popup" style="display:None">
+        <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+        <div id="popup-content"></div>
+    </div>
+    <div class="sidebar left">
+        <div class="input-group" style="margin-top: 10px;margin-bottom: 20px">
+          <input type="text" class="form-control" aria-label="...">
+          <div class="input-group-btn">
+            <button type="button" class="btn btn-success" onclick="searchInfo();"> 查询</button>
+            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right">
+              <li><a href="javascript:;" onclick="searchInfo('place')">事件地</a></li>
+              <li><a href="javascript:;" onclick="searchInfo('company')">单位</a></li>
+              <li><a href="javascript:;" onclick="searchInfo('person')">人员</a></li>
+              <li><a href="javascript:;" onclick="searchInfo('video')">视频</a></li>
+              <li><a href="javascript:;" onclick="searchInfo('voice')">语音</a></li>
+              <li><a href="javascript:;" onclick="searchInfo('phone')">电话</a></li>
+              <li><a href="javascript:;" onclick="searchInfo('publish')">信息发布</a></li>
+            </ul>
+          </div><!-- /btn-group -->
+        </div><!-- /input-group -->
+        <div class="result-list" style="height:600px; overflow:auto">
+            <li>
+                <ul><a href="#">hello, world</a></ul>
+                <ul><a href="#">hello, world</a></ul>
+                <ul><a href="#">hello, world</a></ul>
+                <ul><a href="#">hello, world</a></ul>
+            </li>
+        </div>
+    </div>
+    <script>
+        var container = document.getElementById('popup');
+        var content = document.getElementById('popup-content');
+        var closer = document.getElementById('popup-closer');
+
+        var wgs84Sphere = new ol.Sphere(6378137);
+
+        var offlineMapLayer = new ol.layer.Tile({
+            source: new ol.source.XYZ({
+                url: 'http://localhost:8888/roadmap_chen/{z}/{x}/{y}.png'
+            })
+        });
+
+        var vector_company = new ol.layer.Vector({
+            source: new ol.source.Vector({
+                // name: "source_company"
+            })
+        })
+
+        var vector_draw = new ol.layer.Vector({
+            source: new ol.source.Vector({name: "source_draw", wrapX: false}),
+            style: new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 255, 255, 0.2)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: '#ffcc33',
+                    width: 2
+                }),
+                image: new ol.style.Circle({
+                    radius: 7,
+                    fill: new ol.style.Fill({
+                        color: '#ffcc33'
+                    })
+                })
+            })
+        });
+        var vector_show = new ol.layer.Vector({
+            source: new ol.source.Vector({name: "source_show", wrapX: false}),
+            style: new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 255, 255, 0.2)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: '#ffcc33',
+                    width: 2
+                }),
+                image: new ol.style.Circle({
+                    radius: 7,
+                    fill: new ol.style.Fill({
+                        color: '#ffcc33'
+                    })
+                })
+            })
+        });
+
+        var view = new ol.View({
+            // 设置地图中心范围
+            // extent: [124.35, 42.88, 126.35, 44.88], //[minX, minY, maxX, maxY]
+            // 设置成都为地图中心
+            // center: [125.35, 43.88],
+            center: ol.proj.transform([116, 39], 'EPSG:4326', 'EPSG:3857'),
+            // projection: 'EPSG:4326',
+            zoom: 5,
+            // minZoom: 5,
+            // maxZoom: 14
+        });
+
+        // 创建地图
+        var map = new ol.Map({
+            controls: ol.control.defaults({
+                attributionOptions: ({
+                    collapsible: true
+                })
+            }).extend([
+                new ol.control.FullScreen(),
+                new ol.control.ScaleLine(),
+                new ol.control.ZoomSlider(),
+                new ol.control.ZoomToExtent()
+            ]),
+            // logo: false,
+            // logo: {
+            //     src: "static/img/monkey-logo.jpg",
+            //     href: "http://www.amayadream.com"
+            // },
+            // 设置地图图层
+            layers: [
+                offlineMapLayer,
+                vector_show,
+                vector_draw,
+                vector_company
+            ],
+            // 设置显示地图的视图
+            view: view,
+            // interactions: ol.interaction.defaults({
+            //     doubleClickZoom: false
+            // }),
+            // 让id为map的div作为地图的容器
+            target: 'map'
+        });
+
+        // 在viewport节点下添加一个分享按钮
+        var viewport = map.getViewport();
+        var html = '<div class="btn-group toolbar" role="group" aria-label="...">';
+        html += '<button type="button" class="btn btn-info btn-sm" id="search"><span class="glyphicon glyphicon-search"></span> 查询</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="place"><span class="glyphicon glyphicon-screenshot"></span> 事件地</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="company"><span class="glyphicon glyphicon-tower"></span> 单位</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="person"><span class="glyphicon glyphicon-user"></span> 人员</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="video"><span class="glyphicon glyphicon-facetime-video"></span> 视频</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="voice"><span class=" glyphicon glyphicon-headphones"></span> 语音</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="phone"><span class="glyphicon glyphicon-phone"></span> 电话</button>';
+        html += '<button type="button" class="btn btn-default btn-sm btn-tool" id="publish"><span class="glyphicon glyphicon-comment"></span> 消息发布</button>';
+        html += '<button type="button" class="btn btn-danger btn-sm" id="clearLayer"><span class="glyphicon glyphicon-trash"></span> 清除</button>';
+        html += '<div class="btn-group" role="group">';
+        html += '<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+        html += '<span class="glyphicon glyphicon-cog"></span> 工具 ';
+        html += '<span class="caret"></span>';
+        html += '</button>';
+        html += '<ul class="dropdown-menu">';
+        html += '<li><a href="javascript:;" onclick="amap.draw.run(\'Point\')">点</a></li>';
+        html += '<li><a href="javascript:;" onclick="amap.draw.run(\'LineString\')">线</a></li>';
+        html += '<li><a href="javascript:;" onclick="amap.draw.run(\'Polygon\', test)">面</a></li>';
+        html += '<li><a href="javascript:;" onclick="amap.draw.run(\'Box\', test)">区域</a></li>';
+        html += '<li><a href="javascript:;" onclick="amap.measure.run(\'LineString\');">距离</a></li>';
+        html += '<li><a href="javascript:;" onclick="amap.measure.run(\'Polygon\');">面积</a></li>';
+        html += '</ul>';
+        html += '</div>';
+        html += '</div>';
+        $(viewport).append(html);
+
+        var style_text;
+
+
+        /** 生成 point feature */
+        function generatePoint(point, id, coordinate, name){
+            point = new ol.Feature({
+                id: id,
+                geometry: new ol.geom.Point(ol.proj.transform(coordinate, "EPSG:4326", "EPSG:3857")),
+            });
+            style_text = new ol.style.Text({
+                fill: new ol.style.Fill({
+                    color: '#08d2ff'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: '#752586',
+                    width: 3
+                })
+            });
+            if(name !== undefined && name != null && name != ""){
+                style_text.setText(name);
+                style_text.setFont("14px Calibri,sans-serif");
+                style_text.setOffsetY(20);
+            }
+            point.setStyle(new ol.style.Style({
+                text: style_text,
+                image: new ol.style.Circle({
+                    radius: 6,
+                    fill: new ol.style.Fill({
+                        color: 'rgb(168, 66, 66)'
+                    })
+                })
+            }));
+            return point;
+        }
+
+        function test(geometry){
+            $.ajax({
+                url: "static/json/city.json",
+                type: "GET",
+                dataType: "JSON",
+                success: function(data){
+                    var point;
+                    $.each(eval(data), function(index, item){
+                        if(geometry.intersectsExtent(ol.proj.transform(item.coordinate, "EPSG:4326", "EPSG:3857"))){
+                            point = generatePoint(point, item.id, item.coordinate, item.name);
+                            point.setProperties({
+                                "description": item.description,
+                                "name": item.name,
+                                "coordinate": item.coordinate,
+                                "comandante": item.comandante
+                            }, true);
+                            vector_show.getSource().addFeature(point);
+                        }
+                    });
+                }
+            })
+        }
+
+        $(".btn-tool").click(function() {
+            if ($(this).hasClass("state-on")) {
+                $(this).removeClass("btn-success").removeClass("state-on").addClass("btn-default");
+            } else {
+                $(this).removeClass("btn-default").addClass("btn-success").addClass("state-on");
+            }
+            var state = $(this).hasClass("state-on");
+            switch ($(this).attr("id")) {
+                case "place":
+                    vector_show.getSource().clear();
+                    if (state)
+                        showPlace();
+                    break;
+                case "company":
+                    vector_company.getSource().clear();
+                    if (state)
+                        showCompany(map, vector_company, container, content);
+                    break;
+                case "person":
+
+                    break;
+                case "video":
+
+                    break;
+                case "voice":
+
+                    break;
+                case "phone":
+
+                    break;
+                case "publish":
+
+                    break;
+            }
+        });
+
+        $("#clearLayer").click(function() {
+            $(".btn-tool").addClass("btn-default").removeClass("btn-success").removeClass("state-on").button('reset');
+            amap.clear(vector_draw.getSource());
+            vector_show.getSource().clear();
+            vector_company.getSource().clear();
+        });
+
+        $(".sidebar.left").sidebar({
+            close: true
+        });
+
+        //点击查询按钮弹出侧边栏事件
+        $("#search").click(function() {
+            $(".sidebar.left").trigger("sidebar:toggle");
+        });
+
+        //侧边栏收起事件
+        $(".sidebar.left").on("sidebar:opened", function() {
+            $(".btn-tool").attr("disabled",true);
+            if ($(".btn-tool").hasClass("state-on")) {
+                $(".btn-tool").removeClass("btn-success").removeClass("state-on").addClass("btn-default");
+            }
+            vector_show.getSource().clear();
+            vector_company.getSource().clear();
+        });
+
+        //侧边栏关闭事件
+        $(".sidebar.left").on("sidebar:closed", function() {
+            $(".btn-tool").attr("disabled",false);
+        });
+
+        function searchInfo(type){
+            switch (type) {
+                case undefined:
+                    console.log("查询全部");
+                    break;
+                case "place":
+                    console.log("查询事发地");
+                    break;
+                case "company":
+                    console.log("查询单位");
+                    break;
+                case "person":
+                    console.log("查询人员");
+                    break;
+                case "video":
+                    console.log("查询视频");
+                    break;
+                case "voice":
+                    console.log("查询语音");
+                    break;
+                case "phone":
+                    console.log("查询电话");
+                    break;
+                case "publish":
+                    console.log("查询消息发布");
+                    break;
+            }
+        }
+
+        //初始化amap
+        amap.init({
+            "map": map,
+            "source": vector_draw.getSource(),
+            "wgs84Sphere": wgs84Sphere
+        });
+        amap.draw.init({drawBeforeClear: true, drawMore: false});
+        // amap.measureInit({measureBeforeClear: true, measureMore: false});
+
+        var style_common = new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 6,
+                fill: new ol.style.Fill({
+                    color: 'rgb(168, 66, 66)'
+                })
+            })
+        })
+
+
+        function showCompany(map, view, container, content) {
+            $.ajax({
+                url: "static/json/company.json",
+                type: "GET",
+                dataType: "json",
+                success: function(data) {
+                    var point;
+                    $.each(eval(data), function(index, item) {
+                        point = new ol.Feature({
+                            geometry: new ol.geom.Point(ol.proj.transform(item.coordinate, 'EPSG:4326', 'EPSG:3857')),
+                            id: item.id,
+                            name: item.name,
+                            coordinate: item.coordinate,
+                            type: item.type,
+                            phone: item.phone,
+                            address: item.address
+                        });
+                        point.setStyle(style_common);
+                        view.getSource().addFeature(point);
+                    });
+                }
+            });
+        }
+
+
+        function showPlace() {
+            $.ajax({
+                url: "static/json/city.json",
+                type: "GET",
+                dataType: "json",
+                success: function(data) {
+                    var point;
+                    $.each(eval(data), function(index, item) {
+                        point = new ol.Feature({
+                            geometry: new ol.geom.Point(ol.proj.transform(item.coordinate, 'EPSG:4326', 'EPSG:3857')),
+                            id: item.id,
+                            name: item.name,
+                            description: item.description,
+                            coordinate: item.coordinate,
+                            comandante: item.comandante,
+                        });
+                        point.setStyle(
+                            new ol.style.Style({
+                                text: new ol.style.Text({
+                                    text: item.name,
+                                    font: "14px Calibri,sans-serif",
+                                    offsetY: 20,
+                                    fill: new ol.style.Fill({
+                                        color: '#08d2ff'
+                                    }),
+                                    stroke: new ol.style.Stroke({
+                                        color: '#752586',
+                                        width: 3
+                                    })
+                                }),
+                                image: new ol.style.Circle({
+                                    radius: 6,
+                                    fill: new ol.style.Fill({
+                                        color: 'rgb(168, 66, 66)'
+                                    })
+                                })
+                            })
+                        )
+                        vector_show.getSource().addFeature(point);
+                    });
+                }
+            });
+        }
+
+        /* 添加选择要素出发的事件 */
+        var selectEnvent = new ol.interaction.Select({
+            layers: [vector_show, vector_draw, vector_company],
+            filter: function(feature, layer) {
+                return feature.get("id") !== undefined;
+            }
+        });
+        map.addInteraction(selectEnvent);
+        selectEnvent.on("select", function(event) {
+            if (event.selected.length > 0) {
+                var feature = event.selected[0];
+                if (feature) {
+                    var popup;
+                    container.style.display = "";
+                    closer.onclick = function() {
+                        popup.setPosition(undefined);
+                        closer.blur();
+                        return false;
+                    };
+                    switch (feature.get("id")) {
+                        case "city":
+                            popup = new ol.Overlay(({
+                                id: "city"
+                            }));
+                            content.innerHTML = "<p><b>城市: " + feature.get("name") + "</b></p><p>简称: " + feature.get("comandante") + "</p><p>简介: " + feature.get("description") + "</p>";
+                            popup.setPosition(ol.proj.transform(feature.get("coordinate"), 'EPSG:4326', 'EPSG:3857'));
+                            break;
+                        case "company":
+                            popup = new ol.Overlay(({
+                                id: 'company'
+                            }));
+                            content.innerHTML = "<p><b>单位名称: " + feature.get("name") + "</b></p><p>联系电话: " + feature.get("phone") + "</p><p>联系地址: " + feature.get("address") + "</p>";
+                            popup.setPosition(ol.proj.transform(feature.get("coordinate"), 'EPSG:4326', 'EPSG:3857'));
+                            break;
+                        case "person":
+                            break;
+                        case "video":
+                            break;
+                        case "voice":
+                            break;
+                        case "phone":
+                            break;
+                        case "publish":
+                            break;
+                    }
+                    popup.setElement(container);
+                    popup.set("autoPan", true, true);
+                    popup.set("autoPanAnimation", {
+                        duration: 250
+                    }, true);
+                    map.addOverlay(popup);
+                }
+            } else if (event.deselected.length > 0) {
+                if (map.getOverlayById(event.deselected[0].get("id"))) {
+                    map.removeOverlay(map.getOverlayById(event.deselected[0].get("id")));
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

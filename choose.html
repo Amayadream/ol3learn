@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="ol/ol.css">
+    <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="static/css/style.css">
+    <link rel="stylesheet" type="text/css" href="static/css/sidebar.css">
+    <script type="text/javascript" src="static/js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="ol/ol.js"></script>
+    <script type="text/javascript" src="static/js/jquery.sidebar.min.js"></script>
+    <script type="text/javascript" src="static/js/app.js"></script>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        #map {
+            height: 100%;
+        }
+
+        .btn-group> .btn {
+            line-height: 25px;
+            display: inline-block;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        var offlineMapLayer = new ol.layer.Tile({
+            source: new ol.source.XYZ({
+                url: 'http://localhost:8888/roadmap_chen/{z}/{x}/{y}.png'
+            })
+        });
+
+        var vector_show = new ol.layer.Vector({
+            source: new ol.source.Vector(),
+            style: new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 255, 255, 0.2)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: '#f60631',
+                    width: 2
+                }),
+                image: new ol.style.Circle({
+                    radius: 7,
+                    fill: new ol.style.Fill({
+                        color: '#fe0e06'
+                    })
+                })
+            })
+        });
+
+        var view = new ol.View({
+            // 设置地图中心范围
+            // extent: ol.proj.transform([124.35, 42.88, 126.35, 44.88], 'EPSG:4326', 'EPSG:3857'), //[minX, minY, maxX, maxY]
+            // 设置成都为地图中心
+            center: ol.proj.transform([125.35, 43.88], 'EPSG:4326', 'EPSG:3857'),
+            zoom: 5,
+            // minZoom: 5,
+            // maxZoom: 14
+        });
+
+        // 创建地图
+        var map = new ol.Map({
+            controls: ol.control.defaults({
+                attributionOptions: ({
+                    collapsible: true
+                })
+            }).extend([
+                new ol.control.FullScreen(),
+                new ol.control.ScaleLine(),
+                new ol.control.ZoomSlider(),
+                new ol.control.ZoomToExtent()
+            ]),
+            // 设置地图图层
+            layers: [
+                offlineMapLayer,
+                vector_show,
+            ],
+            view: view,
+            target: 'map'
+        });
+
+        map.on("click", function(evt){
+            vector_show.getSource().clear();
+            var point = new ol.Feature({
+                geometry: new ol.geom.Point(evt.coordinate),
+            });
+            point.setStyle(
+                new ol.style.Style({
+                    image: new ol.style.Icon({
+                        anchor: [0.5, 0.9],
+                        src: 'static/img/mark-box-red-m.png'
+                    })
+                })
+            );
+            vector_show.getSource().addFeature(point);
+            console.log(ol.proj.transform(evt.coordinate, "EPSG:3857", "EPSG:4326"));
+        })
+
+    </script>
+</body>
+
+</html>
